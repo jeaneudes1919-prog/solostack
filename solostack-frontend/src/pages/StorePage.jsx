@@ -9,7 +9,7 @@ const StorePage = () => {
   const [data, setData] = useState({ store: null, products: [] });
   const [loading, setLoading] = useState(true);
 
-  const BASE_IMG_URL = 'http://localhost:5000';
+  
 
   useEffect(() => {
     const fetchStore = async () => {

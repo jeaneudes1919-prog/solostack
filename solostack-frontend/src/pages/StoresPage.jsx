@@ -8,17 +8,22 @@ const StoresPage = () => {
     const [stores, setStores] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
-
+    
     useEffect(() => {
-        api.get('/stores') // Appelle la nouvelle route backend
-            .then(res => setStores(res.data))
+        api.get('/stores')
+            .then(res => {
+                // Si res.data est un tableau, on l'utilise, sinon on met un tableau vide
+                setStores(Array.isArray(res.data) ? res.data : []);
+            })
             .catch(err => console.error(err))
             .finally(() => setLoading(false));
     }, []);
 
-    const filteredStores = stores.filter(s =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
+    const filteredStores = Array.isArray(stores)
+    ? stores.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : [];
+
 
     if (loading) return <div className="p-20 text-center">Chargement des boutiques...</div>;
 
