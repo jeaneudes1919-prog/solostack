@@ -15,8 +15,6 @@ import useAuthStore from '../store/authStore';
 // 0. CONFIGURATION
 // ==========================================
 
-
-
 const CATEGORY_IMAGES = {
   default: "https://images.unsplash.com/photo-1531297461136-82lw9z0u8e?q=80&w=1200&auto=format&fit=crop",
   tech: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?q=80&w=1200&auto=format&fit=crop",
@@ -27,12 +25,10 @@ const CATEGORY_IMAGES = {
 };
 
 const resolveImage = (url, cat = 'default') => {
-  // 1. Si l'URL n'existe pas, on met une image Unsplash par défaut selon la catégorie
   if (!url) {
     const key = Object.keys(CATEGORY_IMAGES).find(k => cat?.toLowerCase().includes(k)) || 'default';
     return CATEGORY_IMAGES[key];
   }
-
   return url;
 };
 
@@ -181,11 +177,9 @@ const VisualCategoryGrid = ({ categories }) => {
   );
 };
 
-// === LE NOUVEAU COMPOSANT PROMOTION ===
 const PromoBanner = () => (
   <section className="container mx-auto px-4 mb-40">
     <div className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-red-600 to-orange-600 shadow-2xl">
-      {/* Background Decor */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-yellow-400 opacity-20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
 
@@ -222,7 +216,6 @@ const PromoBanner = () => (
           </motion.div>
         </div>
 
-        {/* Image / Visuel */}
         <motion.div
           initial={{ opacity: 0, rotate: 0, x: 50 }} whileInView={{ opacity: 1, rotate: 6, x: 0 }} transition={{ delay: 0.4, type: "spring" }}
           className="relative"
@@ -262,10 +255,8 @@ const TrendingShowcase = ({ products }) => {
       <SectionHeader title="La Sélection Hebdo" subtitle="Trending" action={<Link to="/search?sort=trending" className="group text-gray-900 font-bold flex gap-2 items-center hover:text-primary-600 transition">Voir tout <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-primary-100 transition"><ArrowRight size={14} /></div></Link>} />
 
       <div className="bg-black text-white rounded-[3rem] overflow-hidden min-h-[600px] flex flex-col lg:flex-row relative shadow-2xl">
-        {/* Abstract Blob Background */}
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary-600/30 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-        {/* Content Left */}
         <div className="relative z-10 w-full lg:w-1/2 p-12 lg:p-20 flex flex-col justify-center">
           <AnimatePresence mode="wait">
             <motion.div key={product.id} initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }} transition={{ duration: 0.5 }}>
@@ -291,7 +282,6 @@ const TrendingShowcase = ({ products }) => {
           </AnimatePresence>
         </div>
 
-        {/* Image Right */}
         <div className="relative w-full lg:w-1/2 h-[500px] lg:h-auto bg-gray-900/50">
           <AnimatePresence mode="wait">
             <motion.div key={product.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className="w-full h-full">
@@ -377,8 +367,8 @@ const Home = () => {
           api.get('/products?limit=20'),
           api.get('/products/categories'),
         ]);
-        setData(home.data);
-        setCategories(cats.data);
+        setData(home.data || { newArrivals: [], trending: [], topStores: [] });
+        setCategories(cats.data || []);
       } catch (err) {
         console.error('Erreur API:', err);
       } finally { setLoading(false); }
@@ -397,21 +387,17 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans text-gray-900 selection:bg-primary-500 selection:text-white overflow-x-hidden">
-
       <HeroSection isAuthenticated={isAuthenticated} />
-
       <VisualCategoryGrid categories={categories} />
-
-      {/* 🟢 ICI : LA BANNIÈRE DE PROMOTION ACTIVÉE 🟢 */}
       <PromoBanner />
 
-      <TrendingShowcase products={data.trending} />
+      {/* 1. Correction Trending (Sécurisé) */}
+      <TrendingShowcase products={data?.trending || []} />
 
-      {/* Nouveautés */}
+      {/* 2. Correction Nouveautés (Sécurisé) */}
       <div className="container mx-auto px-4 mb-40">
         <SectionHeader title="Nouveautés" subtitle="Fresh Drops" action={<Link to="/search?sort=newest" className="group flex items-center gap-2 font-bold hover:text-primary-600 transition">Catalogue complet <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" /></Link>} />
         <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
-          {/* On ajoute (data?.newArrivals || []) pour dire : Si ça n'existe pas, prends une liste vide */}
           {(data?.newArrivals || []).slice(0, 8).map(p => (
             <motion.div key={p.id} variants={fadeInUp}>
               <ProductCard product={p} />
@@ -420,11 +406,11 @@ const Home = () => {
         </motion.div>
       </div>
 
-      {/* Boutiques VIP */}
+      {/* 3. Correction Boutiques VIP (Sécurisé) */}
       <section className="container mx-auto px-4 mb-40">
         <SectionHeader title="Créateurs Certifiés" subtitle="Elite" centered action={<Link to="/stores" className="text-primary-600 font-bold flex gap-2 justify-center mt-6">Voir les boutiques <ArrowRight size={16} /></Link>} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {data.topStores.slice(0, 4).map((s, i) => (
+          {(data?.topStores || []).slice(0, 4).map((s, i) => (
             <motion.div key={s.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} whileHover={{ y: -8 }}>
               <Link to={`/store/${s.id}`} className="block bg-white p-8 rounded-[2rem] shadow-xl shadow-gray-200/50 hover:shadow-2xl transition-all border border-gray-100 group text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-24 bg-gray-50" />
@@ -435,7 +421,7 @@ const Home = () => {
                   <h3 className="font-bold text-xl mb-2 text-gray-900 group-hover:text-primary-600 transition-colors">{s.name}</h3>
                   <div className="flex justify-center gap-1 text-yellow-400 text-sm mb-6">{[...Array(5)].map((_, x) => <Star key={x} size={14} fill="currentColor" />)}</div>
                   <div className="flex justify-between items-center text-xs font-bold bg-gray-50 p-4 rounded-xl text-gray-600">
-                    <span>{s.sales_count} Ventes</span>
+                    <span>{s.sales_count || 0} Ventes</span>
                     <span className="text-primary-600 flex items-center gap-1">Visiter <ArrowRight size={12} /></span>
                   </div>
                 </div>
@@ -448,11 +434,9 @@ const Home = () => {
       <BenefitsSection />
       <NewsletterSection />
 
-      {/* Footer PREMIUM MASSIVE */}
       <footer className="bg-black text-white pt-24 pb-12 rounded-t-[4rem]">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-            {/* Colonne 1 : Marque */}
             <div className="space-y-6">
               <h3 className="text-3xl font-black tracking-tighter">SOLO<span className="text-primary-500">STACK.</span></h3>
               <p className="text-gray-400 text-sm leading-relaxed">
@@ -466,8 +450,6 @@ const Home = () => {
                 ))}
               </div>
             </div>
-
-            {/* Colonne 2 : Navigation */}
             <div>
               <h4 className="font-bold text-lg mb-6">Explorer</h4>
               <ul className="space-y-4 text-gray-400 text-sm">
@@ -476,8 +458,6 @@ const Home = () => {
                 ))}
               </ul>
             </div>
-
-            {/* Colonne 3 : Support */}
             <div>
               <h4 className="font-bold text-lg mb-6">Aide</h4>
               <ul className="space-y-4 text-gray-400 text-sm">
@@ -486,8 +466,6 @@ const Home = () => {
                 ))}
               </ul>
             </div>
-
-            {/* Colonne 4 : Contact */}
             <div>
               <h4 className="font-bold text-lg mb-6">Contact</h4>
               <ul className="space-y-4 text-gray-400 text-sm">
@@ -497,7 +475,6 @@ const Home = () => {
               </ul>
             </div>
           </div>
-
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-500 text-sm">
             <p>&copy; 2025 SoloStack Market. Tous droits réservés.</p>
             <div className="flex gap-8 mt-4 md:mt-0">
