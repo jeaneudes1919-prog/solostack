@@ -98,33 +98,35 @@ const SearchPage = () => {
 
   // --- 4. Logique de Filtrage et Tri (Memoized) ---
   const filteredProducts = useMemo(() => {
-    return Array.isArray(products) ? products
-      .filter(product => {
-        const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = selectedCategory === 'all' || product.category_id === parseInt(selectedCategory);
-        const price = getFinalPrice(product);
-        const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
-        const matchesRating = (product.rating || 0) >= ratingFilter;
-        const matchesStock = !inStockOnly || product.stock_quantity > 0;
-        const matchesDiscount = !discountedOnly || (product.discount_percent || 0) > 0;
+  if (!Array.isArray(products)) return [];
 
-        return matchesSearch && matchesCategory && matchesPrice &&
-          matchesRating && matchesStock && matchesDiscount;
-      })
-      .sort((a, b) => {
-        const priceA = getFinalPrice(a);
-        const priceB = getFinalPrice(b);
+  return products
+    .filter(product => {
+      const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || product.category_id === parseInt(selectedCategory);
+      const price = getFinalPrice(product);
+      const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
+      const matchesRating = (product.rating || 0) >= ratingFilter;
+      const matchesStock = !inStockOnly || product.stock_quantity > 0;
+      const matchesDiscount = !discountedOnly || (product.discount_percent || 0) > 0;
 
-        switch (sortBy) {
-          case 'price-asc': return priceA - priceB;
-          case 'price-desc': return priceB - priceA;
-          case 'rating': return (b.rating || 0) - (a.rating || 0);
-          case 'discount': return (b.discount_percent || 0) - (a.discount_percent || 0);
-          default: return new Date(b.created_at) - new Date(a.created_at);
-        }
-      });
-  }, [products, searchTerm, selectedCategory, priceRange, sortBy, ratingFilter, inStockOnly, discountedOnly]);
+      return matchesSearch && matchesCategory && matchesPrice &&
+        matchesRating && matchesStock && matchesDiscount;
+    })
+    .sort((a, b) => {
+      const priceA = getFinalPrice(a);
+      const priceB = getFinalPrice(b);
+
+      switch (sortBy) {
+        case 'price-asc': return priceA - priceB;
+        case 'price-desc': return priceB - priceA;
+        case 'rating': return (b.rating || 0) - (a.rating || 0);
+        case 'discount': return (b.discount_percent || 0) - (a.discount_percent || 0);
+        default: return (new Date(b.created_at)?.getTime() || 0) - (new Date(a.created_at)?.getTime() || 0);
+      }
+    });
+}, [products, searchTerm, selectedCategory, priceRange, sortBy, ratingFilter, inStockOnly, discountedOnly]);
 
   // --- 5. Calcul des Stats (Memoized) ---
   const stats = useMemo(() => {
