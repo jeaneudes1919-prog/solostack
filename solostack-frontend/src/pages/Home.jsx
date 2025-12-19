@@ -142,9 +142,15 @@ const HeroSection = ({ isAuthenticated }) => {
 };
 
 const VisualCategoryGrid = ({ categories }) => {
-  if (!categories?.length) return null;
-  const cats = [{ id: 'all', name: 'Tout Voir', icon: Filter }, ...categories.slice(0, 4)];
+  // On s'assure que categories est bien un tableau avant de faire quoi que ce soit
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  
+  if (safeCategories.length === 0) return null;
 
+  const cats = [
+    { id: 'all', name: 'Tout Voir', icon: Filter }, 
+    ...safeCategories.slice(0, 4)
+  ];
   return (
     <div className="container mx-auto px-4 -mt-32 relative z-20 mb-32">
       <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -367,11 +373,19 @@ const Home = () => {
           api.get('/products?limit=20'),
           api.get('/products/categories'),
         ]);
+        
+        // On force des tableaux vides si les données sont absentes
         setData(home.data || { newArrivals: [], trending: [], topStores: [] });
-        setCategories(cats.data || []);
+        setCategories(Array.isArray(cats.data) ? cats.data : []);
+        
       } catch (err) {
         console.error('Erreur API:', err);
-      } finally { setLoading(false); }
+        // En cas d'erreur, on garde des structures vides pour éviter les crashs
+        setData({ newArrivals: [], trending: [], topStores: [] });
+        setCategories([]);
+      } finally { 
+        setLoading(false); 
+      }
     };
     fetchData();
   }, []);
