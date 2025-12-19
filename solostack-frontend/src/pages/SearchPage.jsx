@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { 
-  Filter, SlidersHorizontal, Search, X, Star, Zap, Shield, 
-  Clock, TrendingUp, CheckCircle, AlertCircle 
+import {
+  Filter, SlidersHorizontal, Search, X, Star, Zap, Shield,
+  Clock, TrendingUp, CheckCircle, AlertCircle
 } from 'lucide-react';
 import debounce from 'lodash.debounce'; // Assurez-vous d'installer lodash
 import api from '../api/axios';
@@ -63,14 +63,16 @@ const SearchPage = () => {
           api.get('/products'),
           api.get('/products/categories')
         ]);
-        
-        setProducts(prodRes.data);
-        setCategories(catRes.data);
-        
+
+        setProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
+        setCategories(Array.isArray(catRes.data) ? catRes.data : []);
+
+
         // Chargement sécurisé du localStorage
         try {
           const viewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
           setRecentlyViewed(Array.isArray(viewed) ? viewed : []);
+
         } catch (e) {
           console.error("Erreur lecture localStorage", e);
           setRecentlyViewed([]);
@@ -96,10 +98,10 @@ const SearchPage = () => {
 
   // --- 4. Logique de Filtrage et Tri (Memoized) ---
   const filteredProducts = useMemo(() => {
-    return products
+    return Array.isArray(products) ? products
       .filter(product => {
         const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+          product.description?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = selectedCategory === 'all' || product.category_id === parseInt(selectedCategory);
         const price = getFinalPrice(product);
         const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
@@ -107,8 +109,8 @@ const SearchPage = () => {
         const matchesStock = !inStockOnly || product.stock_quantity > 0;
         const matchesDiscount = !discountedOnly || (product.discount_percent || 0) > 0;
 
-        return matchesSearch && matchesCategory && matchesPrice && 
-               matchesRating && matchesStock && matchesDiscount;
+        return matchesSearch && matchesCategory && matchesPrice &&
+          matchesRating && matchesStock && matchesDiscount;
       })
       .sort((a, b) => {
         const priceA = getFinalPrice(a);
@@ -128,7 +130,7 @@ const SearchPage = () => {
   const stats = useMemo(() => {
     const total = filteredProducts.length || 1;
     const avgPrice = filteredProducts.reduce((sum, p) => sum + getFinalPrice(p), 0) / total;
-    
+
     return {
       avgPrice: avgPrice.toFixed(2),
       discountedCount: filteredProducts.filter(p => (p.discount_percent || 0) > 0).length,
@@ -172,7 +174,7 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-4">
-        
+
         {/* HEADER */}
         <div className="mb-10">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8">
@@ -182,12 +184,12 @@ const SearchPage = () => {
                 <span className="font-semibold text-primary-600">{filteredProducts.length}</span> produits trouvés
               </p>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setShowFilters(!showFilters)}
               className="lg:hidden w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl font-semibold shadow-sm active:scale-95 transition-transform"
             >
-              <SlidersHorizontal size={20} /> 
+              <SlidersHorizontal size={20} />
               {showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
             </button>
           </div>
@@ -212,13 +214,13 @@ const SearchPage = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* SIDEBAR FILTERS */}
           <aside className={`
             lg:w-80 flex-shrink-0 space-y-6 transition-all duration-300 ease-in-out
             ${showFilters ? 'block opacity-100 translate-y-0' : 'hidden lg:block'}
           `}>
-            
+
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold text-gray-900">Filtres</h2>
               <button onClick={resetFilters} className="text-sm text-primary-600 hover:text-primary-700 hover:underline">
@@ -230,8 +232,8 @@ const SearchPage = () => {
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={localSearchInput}
                   onChange={onSearchInput}
                   placeholder="Mot-clé..."
@@ -248,9 +250,8 @@ const SearchPage = () => {
               <div className="space-y-1 max-h-60 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
                 <button
                   onClick={() => setSelectedCategory('all')}
-                  className={`w-full flex justify-between items-center px-3 py-2 rounded-lg text-sm transition-colors ${
-                    selectedCategory === 'all' ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
-                  }`}
+                  className={`w-full flex justify-between items-center px-3 py-2 rounded-lg text-sm transition-colors ${selectedCategory === 'all' ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                    }`}
                 >
                   <span>Toutes</span>
                   <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-xs">{products.length}</span>
@@ -259,9 +260,8 @@ const SearchPage = () => {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(parseInt(cat.id))}
-                    className={`w-full flex justify-between items-center px-3 py-2 rounded-lg text-sm transition-colors ${
-                      selectedCategory === parseInt(cat.id) ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
-                    }`}
+                    className={`w-full flex justify-between items-center px-3 py-2 rounded-lg text-sm transition-colors ${selectedCategory === parseInt(cat.id) ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                      }`}
                   >
                     <span>{cat.name}</span>
                     <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-xs">
@@ -278,18 +278,18 @@ const SearchPage = () => {
               <div className="flex items-center gap-4 mb-4">
                 <div className="flex-1">
                   <span className="text-xs text-gray-500">Min</span>
-                  <input 
-                    type="number" 
-                    value={priceRange[0]} 
+                  <input
+                    type="number"
+                    value={priceRange[0]}
                     onChange={(e) => setPriceRange([+e.target.value, priceRange[1]])}
                     className="w-full mt-1 px-2 py-1 bg-gray-50 border rounded-lg text-sm font-medium"
                   />
                 </div>
                 <div className="flex-1 text-right">
                   <span className="text-xs text-gray-500">Max</span>
-                  <input 
-                    type="number" 
-                    value={priceRange[1]} 
+                  <input
+                    type="number"
+                    value={priceRange[1]}
                     onChange={(e) => setPriceRange([priceRange[0], +e.target.value])}
                     className="w-full mt-1 px-2 py-1 bg-gray-50 border rounded-lg text-sm font-medium text-right"
                   />
@@ -307,7 +307,7 @@ const SearchPage = () => {
             {/* Autres Filtres */}
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
               <h3 className="font-bold text-gray-800">Affiner</h3>
-              
+
               {/* Note */}
               <div>
                 <span className="text-sm text-gray-600 mb-2 block">Note minimum</span>
@@ -316,9 +316,8 @@ const SearchPage = () => {
                     <button
                       key={star}
                       onClick={() => setRatingFilter(ratingFilter === star ? 0 : star)}
-                      className={`flex-1 py-1.5 rounded-md border transition-all ${
-                        ratingFilter >= star ? 'bg-amber-50 border-amber-200 text-amber-500' : 'bg-gray-50 border-transparent text-gray-300'
-                      }`}
+                      className={`flex-1 py-1.5 rounded-md border transition-all ${ratingFilter >= star ? 'bg-amber-50 border-amber-200 text-amber-500' : 'bg-gray-50 border-transparent text-gray-300'
+                        }`}
                     >
                       <Star size={16} className={ratingFilter >= star ? 'fill-current' : ''} />
                     </button>
@@ -328,11 +327,11 @@ const SearchPage = () => {
 
               <div className="space-y-2">
                 <label className="flex items-center justify-between cursor-pointer p-2 hover:bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-700 flex items-center gap-2"><Zap size={16}/> En Stock</span>
+                  <span className="text-sm text-gray-700 flex items-center gap-2"><Zap size={16} /> En Stock</span>
                   <input type="checkbox" checked={inStockOnly} onChange={(e) => setInStockOnly(e.target.checked)} className="accent-primary-600 w-4 h-4" />
                 </label>
                 <label className="flex items-center justify-between cursor-pointer p-2 hover:bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-700 flex items-center gap-2"><TrendingUp size={16}/> Promotions</span>
+                  <span className="text-sm text-gray-700 flex items-center gap-2"><TrendingUp size={16} /> Promotions</span>
                   <input type="checkbox" checked={discountedOnly} onChange={(e) => setDiscountedOnly(e.target.checked)} className="accent-primary-600 w-4 h-4" />
                 </label>
               </div>
@@ -341,7 +340,7 @@ const SearchPage = () => {
 
           {/* MAIN CONTENT */}
           <main className="flex-1">
-            
+
             {/* Sort Bar & Tags */}
             <div className="mb-6 space-y-4">
               <div className="flex flex-wrap gap-2 items-center">
@@ -355,9 +354,8 @@ const SearchPage = () => {
                   <button
                     key={opt.id}
                     onClick={() => setSortBy(opt.id)}
-                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                      sortBy === opt.id ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
+                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${sortBy === opt.id ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
                   >
                     {opt.label}
                   </button>
@@ -407,7 +405,7 @@ const SearchPage = () => {
                   {recentlyViewed.map(product => (
                     <Link key={product.id} to={`/product/${product.id}`} className="group block bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-all">
                       <div className="aspect-square bg-gray-100 relative">
-                         {product.images?.[0] && <img src={product.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+                        {product.images?.[0] && <img src={product.images[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
                       </div>
                       <div className="p-3">
                         <p className="text-sm font-medium text-gray-900 truncate">{product.title}</p>
