@@ -374,13 +374,25 @@ const Home = () => {
           api.get('/products/categories'),
         ]);
         
-        // On force des tableaux vides si les données sont absentes
-        setData(home.data || { newArrivals: [], trending: [], topStores: [] });
-        setCategories(Array.isArray(cats.data) ? cats.data : []);
+        // 1. On sécurise les données de la Home
+        // Si home.data n'existe pas ou n'a pas la bonne forme, on met l'objet par défaut
+        if (home?.data && typeof home.data === 'object') {
+          setData({
+            newArrivals: home.data.newArrivals || [],
+            trending: home.data.trending || [],
+            topStores: home.data.topStores || []
+          });
+        } else {
+          setData({ newArrivals: [], trending: [], topStores: [] });
+        }
+
+        // 2. On sécurise les catégories (C'est ici que le .filter peut planter)
+        // On force un tableau vide si ce n'est pas un tableau
+        setCategories(Array.isArray(cats?.data) ? cats.data : []);
         
       } catch (err) {
-        console.error('Erreur API:', err);
-        // En cas d'erreur, on garde des structures vides pour éviter les crashs
+        console.error('Erreur API détaillée:', err);
+        // En cas d'erreur, on initialise tout à vide pour éviter les crashs JS
         setData({ newArrivals: [], trending: [], topStores: [] });
         setCategories([]);
       } finally { 
