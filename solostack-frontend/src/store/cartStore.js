@@ -1,75 +1,100 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { toast } from 'react-hot-toast';
 
 const useCartStore = create(
   persist(
     (set, get) => ({
       items: [],
 
-      // Ajouter au panier
+      // --- AJOUTER AU PANIER AVEC VÉRIF STOCK ---
       addToCart: (product, variant, quantity) => {
         const items = get().items;
-        // On crée un ID unique pour l'article du panier (ProduitID + VarianteID)
         const cartItemId = `${product.id}-${variant?.id || 'base'}`;
         
+        // On récupère le stock disponible pour cette variante
+        const availableStock = variant?.stock_quantity || 0;
+
         const existingItem = items.find(item => item.cartItemId === cartItemId);
 
         if (existingItem) {
-          // Si existe déjà, on augmente la quantité
+          // Calcul de la nouvelle quantité totale (actuelle + nouvelle)
+          const newTotalQuantity = existingItem.quantity + quantity;
+
+          // ✅ BLOCAGE SI DÉPASSEMENT STOCK
+          if (newTotalQuantity > availableStock) {
+            toast.error(`Stock insuffisant. Limite atteinte (${availableStock} max)`);
+            return;
+          }
+
           set({
             items: items.map(item => 
               item.cartItemId === cartItemId 
-                ? { ...item, quantity: item.quantity + quantity }
+                ? { ...item, quantity: newTotalQuantity }
                 : item
             )
           });
         } else {
-          // Sinon on ajoute
+          // ✅ VÉRIF STOCK POUR NOUVEL ARTICLE
+          if (quantity > availableStock) {
+            toast.error(`Désolé, il ne reste que ${availableStock} articles.`);
+            return;
+          }
+
           set({
             items: [...items, {
               cartItemId,
               product_id: product.id,
-              variant_id: variant?.id, // ID important pour le backend
+              variant_id: variant?.id,
               title: product.title,
-              price: parseFloat(product.base_price), // On simplifie (prix de base)
-              image: product.images?.[0] || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1999&auto=format&fit=crop",
-              store_id: product.store_id, // Important pour le split order
+              price: parseFloat(product.base_price),
+              // On utilise image_url qui est notre standard Cloudinary
+              image_url: product.image_url || product.images?.[0], 
+              store_id: product.store_id,
               store_name: product.store_name,
-              attributes: variant?.attributes, // {color: "Red", size: "L"}
+              attributes: variant?.attributes,
+              stock_quantity: availableStock, // ✅ ON SAUVEGARDE LA LIMITE ICI
               quantity
             }]
           });
         }
       },
 
-      // Modifier quantité
+      // --- MODIFIER QUANTITÉ AVEC VÉRIF STOCK ---
       updateQuantity: (cartItemId, quantity) => {
         const items = get().items;
+        const item = items.find(i => i.cartItemId === cartItemId);
+
+        if (!item) return;
+
         if (quantity < 1) {
-          // Supprimer si < 1
           set({ items: items.filter(i => i.cartItemId !== cartItemId) });
-        } else {
-          set({
-            items: items.map(i => i.cartItemId === cartItemId ? { ...i, quantity } : i)
-          });
+          return;
         }
+
+        // ✅ VÉRIFICATION CONTRE LE STOCK ENREGISTRÉ
+        if (quantity > item.stock_quantity) {
+          toast.error(`Limite de stock atteinte (${item.stock_quantity})`);
+          return;
+        }
+
+        set({
+          items: items.map(i => i.cartItemId === cartItemId ? { ...i, quantity } : i)
+        });
       },
 
-      // Supprimer un article
       removeFromCart: (cartItemId) => {
         set({ items: get().items.filter(i => i.cartItemId !== cartItemId) });
       },
 
-      // Vider le panier (après commande)
       clearCart: () => set({ items: [] }),
 
-      // Calcul du total
       getTotal: () => {
         return get().items.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
       }
     }),
     {
-      name: 'solostack-cart', // Nom dans le localStorage
+      name: 'solostack-cart', 
     }
   )
 );
