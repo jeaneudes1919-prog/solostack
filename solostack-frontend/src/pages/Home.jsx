@@ -38,23 +38,23 @@ const resolveImage = (url, cat = 'default') => {
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { 
+      duration: 0.6, 
       ease: [0.22, 1, 0.36, 1],
-      staggerChildren: 0.1
+      staggerChildren: 0.1 
     }
   }
 };
 
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
+  visible: { 
+    opacity: 1, 
+    scale: 1, 
+    transition: { 
       duration: 0.5,
       ease: "easeOut"
     }
@@ -63,10 +63,10 @@ const scaleIn = {
 
 const slideInLeft = {
   hidden: { opacity: 0, x: -60 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: {
+  visible: { 
+    opacity: 1, 
+    x: 0, 
+    transition: { 
       duration: 0.7,
       ease: "easeOut"
     }
@@ -75,9 +75,9 @@ const slideInLeft = {
 
 const staggerContainer = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
+  visible: { 
+    opacity: 1, 
+    transition: { 
       staggerChildren: 0.15,
       delayChildren: 0.1
     }
@@ -90,7 +90,7 @@ const staggerContainer = {
 
 const SectionHeader = ({ title, subtitle, centered, action }) => {
   const controls = useAnimation();
-
+  
   useEffect(() => {
     controls.start("visible");
   }, [controls]);
@@ -101,22 +101,23 @@ const SectionHeader = ({ title, subtitle, centered, action }) => {
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
       variants={staggerContainer}
-      className={`mb-10 md:mb-16 px-4 ${centered
-          ? 'text-center mx-auto max-w-4xl'
+      className={`mb-10 md:mb-16 px-4 ${
+        centered 
+          ? 'text-center mx-auto max-w-4xl' 
           : 'flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-8'
-        }`}
+      }`}
     >
-      <motion.div
+      <motion.div 
         variants={fadeInUp}
         className={`${centered ? 'mx-auto' : 'flex-1'}`}
       >
-        <motion.span
+        <motion.span 
           variants={fadeInUp}
           className="text-primary-600 font-bold tracking-[0.2em] uppercase text-xs md:text-sm mb-3 md:mb-4 block flex items-center gap-2 justify-center md:justify-start"
         >
           <Sparkles size={14} className="animate-pulse" /> {subtitle}
         </motion.span>
-        <motion.h2
+        <motion.h2 
           variants={fadeInUp}
           className="text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-gray-900 leading-[1.1] md:leading-[0.95] tracking-tight"
         >
@@ -124,7 +125,7 @@ const SectionHeader = ({ title, subtitle, centered, action }) => {
         </motion.h2>
       </motion.div>
       {action && (
-        <motion.div
+        <motion.div 
           variants={fadeInUp}
           className={`mt-6 md:mt-0 ${centered ? 'mx-auto' : 'self-start md:self-end'}`}
         >
@@ -144,15 +145,16 @@ const LazyImage = ({ src, alt, className, fallbackCategory }) => {
   }, [src, fallbackCategory]);
 
   return (
-    <motion.div
+    <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className={`relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 ${className}`}
     >
-      <motion.div
-        className={`absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 ${loaded ? 'opacity-0' : 'opacity-100'
-          }`}
-        animate={{
+      <motion.div 
+        className={`absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 ${
+          loaded ? 'opacity-0' : 'opacity-100'
+        }`}
+        animate={{ 
           backgroundPosition: ['0% 0%', '100% 100%'],
         }}
         transition={{
@@ -165,19 +167,20 @@ const LazyImage = ({ src, alt, className, fallbackCategory }) => {
         }}
       />
       <motion.img
-        src={imgSrc}
-        alt={alt}
+        src={imgSrc} 
+        alt={alt} 
         loading="lazy"
         onLoad={() => setLoaded(true)}
         onError={() => setImgSrc(CATEGORY_IMAGES.default)}
         initial={{ scale: 1.1, opacity: 0 }}
-        animate={loaded ? {
-          scale: 1,
+        animate={loaded ? { 
+          scale: 1, 
           opacity: 1,
           transition: { duration: 0.7, ease: "easeOut" }
         } : {}}
-        className={`w-full h-full object-cover transition-transform duration-700 hover:scale-105 ${loaded ? 'opacity-100' : 'opacity-0'
-          }`}
+        className={`w-full h-full object-cover transition-transform duration-700 hover:scale-105 ${
+          loaded ? 'opacity-100' : 'opacity-0'
+        }`}
       />
     </motion.div>
   );
@@ -195,17 +198,17 @@ const HeroSection = ({ isAuthenticated }) => {
 
   return (
     <div className="relative min-h-[85vh] md:min-h-screen w-full overflow-hidden bg-black rounded-b-[30px] md:rounded-b-[60px] lg:rounded-b-[80px] z-0">
-      <motion.div
-        style={{ y, opacity, scale }}
+      <motion.div 
+        style={{ y, opacity, scale }} 
         className="absolute inset-0"
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
         transition={{ duration: 1.5, ease: "easeOut" }}
       >
-        <img
-          src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=2400&auto=format&fit=crop"
+        <img 
+          src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=2400&auto=format&fit=crop" 
           className="w-full h-full object-cover opacity-80"
-          alt="Hero"
+          alt="Hero" 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
@@ -219,7 +222,7 @@ const HeroSection = ({ isAuthenticated }) => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-lg mb-6 md:mb-8"
           >
-            <motion.span
+            <motion.span 
               className="w-2 h-2 rounded-full bg-green-400"
               animate={{ scale: [1, 1.5, 1] }}
               transition={{ duration: 1.5, repeat: Infinity }}
@@ -236,7 +239,7 @@ const HeroSection = ({ isAuthenticated }) => {
             className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-[9rem] leading-[0.9] font-black text-white mb-6 md:mb-8 tracking-tighter"
           >
             <span className="block">SOLO</span>
-            <motion.span
+            <motion.span 
               className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-purple-500 to-primary-400"
               animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
               transition={{ duration: 5, repeat: Infinity }}
@@ -259,32 +262,28 @@ const HeroSection = ({ isAuthenticated }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            /* Correction : flex-col par défaut (mobile) et sm:flex-row (tablette+) */
-            className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full sm:w-auto max-w-[320px] sm:max-w-none mx-auto md:mx-0"
+            className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full sm:w-auto max-w-sm sm:max-w-none mx-auto md:mx-0"
           >
-            <Link
-              to="/search"
-              /* w-full pour qu'ils prennent toute la largeur sur mobile */
-              className="w-full sm:w-auto px-8 py-3.5 md:py-4 bg-white text-black rounded-full font-bold text-base md:text-lg hover:scale-105 transition-all flex justify-center items-center gap-2 group shadow-xl"
+            <Link 
+              to="/search" 
+              className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-white text-black rounded-full font-bold text-base md:text-lg hover:scale-105 transition-all flex justify-center items-center gap-2 group shadow-2xl"
             >
               <span>Explorer</span>
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
-
-            <Link
-              to={isAuthenticated ? "/vendor/dashboard" : "/register"}
-              /* w-full ici aussi pour l'alignement parfait en dessous */
-              className="w-full sm:w-auto px-8 py-3.5 md:py-4 border-2 border-white/20 bg-white/5 backdrop-blur-md text-white rounded-full font-bold text-base md:text-lg hover:bg-white/10 transition-all flex justify-center items-center gap-2 group"
+            <Link 
+              to={isAuthenticated ? "/vendor/dashboard" : "/register"} 
+              className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 border-2 border-white/30 bg-white/10 backdrop-blur-md text-white rounded-full font-bold text-base md:text-lg hover:bg-white/20 transition-all flex justify-center items-center gap-2 group"
             >
               <Store size={20} className="group-hover:rotate-12 transition-transform" />
-              <span className="whitespace-nowrap">Espace Créateur</span>
+              <span>Espace Créateur</span>
             </Link>
           </motion.div>
         </div>
       </div>
 
       {/* Scroll Indicator */}
-      <motion.div
+      <motion.div 
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 hidden md:block"
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
@@ -303,7 +302,7 @@ const VisualCategoryGrid = ({ categories }) => {
 
   return (
     <div className="container mx-auto px-4 -mt-12 md:-mt-24 lg:-mt-32 relative z-20 mb-16 md:mb-32">
-      <motion.div
+      <motion.div 
         variants={staggerContainer}
         initial="hidden"
         whileInView="visible"
@@ -315,28 +314,30 @@ const VisualCategoryGrid = ({ categories }) => {
             key={cat.id}
             variants={fadeInUp}
             whileHover={{ y: -8, transition: { duration: 0.2 } }}
-            className={`relative group rounded-2xl md:rounded-3xl overflow-hidden cursor-pointer shadow-lg md:shadow-xl h-48 md:h-64 lg:h-72 ${i === 0 ? 'sm:col-span-2 lg:col-span-1 xl:col-span-1' : ''
-              }`}
+            className={`relative group rounded-2xl md:rounded-3xl overflow-hidden cursor-pointer shadow-lg md:shadow-xl h-48 md:h-64 lg:h-72 ${
+              i === 0 ? 'sm:col-span-2 lg:col-span-1 xl:col-span-1' : ''
+            }`}
           >
-            <Link
-              to={cat.id === 'all' ? '/search' : `/search?category=${cat.id}`}
+            <Link 
+              to={cat.id === 'all' ? '/search' : `/search?category=${cat.id}`} 
               className="block h-full w-full relative"
             >
               {cat.id !== 'all' && (
-                <LazyImage
-                  src={null}
-                  alt={cat.name}
-                  fallbackCategory={cat.name}
+                <LazyImage 
+                  src={null} 
+                  alt={cat.name} 
+                  fallbackCategory={cat.name} 
                   className="absolute inset-0"
                 />
               )}
-              <div className={`absolute inset-0 transition-all duration-300 ${cat.id === 'all'
-                  ? 'bg-gradient-to-br from-gray-900 to-gray-800'
+              <div className={`absolute inset-0 transition-all duration-300 ${
+                cat.id === 'all' 
+                  ? 'bg-gradient-to-br from-gray-900 to-gray-800' 
                   : 'bg-gradient-to-t from-black/70 via-black/40 to-transparent group-hover:from-black/80'
-                }`} />
+              }`} />
 
               <div className="absolute inset-0 p-4 md:p-6 lg:p-8 flex flex-col justify-between">
-                <motion.div
+                <motion.div 
                   className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20 group-hover:bg-white/20 transition-colors"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                 >
@@ -346,7 +347,7 @@ const VisualCategoryGrid = ({ categories }) => {
                   <h3 className="text-white font-bold text-xl md:text-2xl lg:text-3xl mb-2">
                     {cat.name}
                   </h3>
-                  <motion.div
+                  <motion.div 
                     className="flex items-center gap-2 text-white/80 text-sm md:text-base font-medium"
                     whileHover={{ x: 5 }}
                     transition={{ type: "spring", stiffness: 400 }}
@@ -467,7 +468,7 @@ const TrendingShowcase = ({ products }) => {
     setDirection(1);
     setIdx((i) => (i + 1) % products.length);
   };
-
+  
   const prev = () => {
     setDirection(-1);
     setIdx((i) => (i - 1 + products.length) % products.length);
@@ -493,9 +494,9 @@ const TrendingShowcase = ({ products }) => {
 
   return (
     <section className="container mx-auto px-4 mb-16 md:mb-32">
-      <SectionHeader
-        title="La Sélection"
-        subtitle="Trending Now"
+      <SectionHeader 
+        title="La Sélection" 
+        subtitle="Trending Now" 
         action={
           <Link to="/search?sort=trending" className="hidden md:flex group text-gray-900 font-bold gap-3 items-center hover:text-primary-600 transition">
             <span>Voir tout</span>
@@ -503,14 +504,14 @@ const TrendingShowcase = ({ products }) => {
               <ArrowRight size={18} />
             </div>
           </Link>
-        }
+        } 
       />
 
       <div className="bg-black text-white rounded-2xl md:rounded-3xl lg:rounded-[2.5rem] overflow-hidden min-h-[500px] md:min-h-[600px] flex flex-col lg:flex-row relative shadow-2xl">
         {/* Image Section */}
         <div className="relative w-full h-64 md:h-80 lg:h-auto lg:w-1/2 bg-gray-900/50 order-1 lg:order-2">
           <AnimatePresence custom={direction} mode="popLayout">
-            <motion.div
+            <motion.div 
               key={product.id}
               custom={direction}
               variants={variants}
@@ -520,32 +521,32 @@ const TrendingShowcase = ({ products }) => {
               transition={{ duration: 0.5 }}
               className="w-full h-full"
             >
-              <LazyImage
-                src={product.image_url}
-                alt={product.title}
-                fallbackCategory={product.category_name}
+              <LazyImage 
+                src={product.image_url} 
+                alt={product.title} 
+                fallbackCategory={product.category_name} 
                 className="w-full h-full object-cover opacity-90"
               />
             </motion.div>
           </AnimatePresence>
-
+          
           {/* Navigation Buttons */}
           <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 flex gap-2 z-10">
-            <motion.button
+            <motion.button 
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={prev}
               className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/20 bg-black/60 backdrop-blur flex items-center justify-center hover:bg-white/20 transition"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={20}/>
             </motion.button>
-            <motion.button
+            <motion.button 
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={next}
               className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/20 bg-black/60 backdrop-blur flex items-center justify-center hover:bg-white/20 transition"
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={20}/>
             </motion.button>
           </div>
         </div>
@@ -553,7 +554,7 @@ const TrendingShowcase = ({ products }) => {
         {/* Content Section */}
         <div className="relative z-10 w-full lg:w-1/2 p-6 md:p-8 lg:p-12 xl:p-16 flex flex-col justify-center order-2 lg:order-1">
           <AnimatePresence custom={direction} mode="popLayout">
-            <motion.div
+            <motion.div 
               key={product.id}
               custom={direction}
               variants={variants}
@@ -564,11 +565,11 @@ const TrendingShowcase = ({ products }) => {
               className="max-w-lg"
             >
               <div className="flex items-center gap-3 mb-4 md:mb-6">
-                <motion.span
+                <motion.span 
                   whileHover={{ scale: 1.05 }}
                   className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1"
                 >
-                  <Flame size={12} /> #1 Trending
+                  <Flame size={12}/> #1 Trending
                 </motion.span>
                 <div className="flex gap-1 text-yellow-400">
                   {[...Array(5)].map((_, i) => (
@@ -585,13 +586,13 @@ const TrendingShowcase = ({ products }) => {
               </p>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
-                <motion.span
+                <motion.span 
                   whileHover={{ scale: 1.05 }}
                   className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight"
                 >
                   {product.base_price} €
                 </motion.span>
-                <Link
+                <Link 
                   to={`/product/${product.id}`}
                   className="w-full sm:w-auto px-6 md:px-8 py-3 md:py-4 bg-white text-black rounded-full font-bold hover:bg-primary-500 hover:text-white transition-all flex justify-center items-center gap-3 group shadow-lg"
                 >
@@ -603,14 +604,14 @@ const TrendingShowcase = ({ products }) => {
           </AnimatePresence>
         </div>
       </div>
-
+      
       {/* Mobile Action Link */}
       <div className="mt-8 text-center md:hidden">
-        <Link
-          to="/search?sort=trending"
+        <Link 
+          to="/search?sort=trending" 
           className="inline-flex items-center gap-2 font-bold text-gray-700 hover:text-primary-600 transition px-4 py-2 rounded-lg hover:bg-gray-100"
         >
-          Tout voir <ArrowRight size={16} />
+          Tout voir <ArrowRight size={16}/>
         </Link>
       </div>
     </section>
@@ -620,7 +621,7 @@ const TrendingShowcase = ({ products }) => {
 const BenefitsSection = () => (
   <div className="container mx-auto px-4 mb-16 md:mb-32">
     <SectionHeader title="Nos Engagements" subtitle="Why SoloStack?" centered />
-    <motion.div
+    <motion.div 
       variants={staggerContainer}
       initial="hidden"
       whileInView="visible"
@@ -638,7 +639,7 @@ const BenefitsSection = () => (
           whileHover={{ y: -8, transition: { duration: 0.2 } }}
           className="bg-white p-6 md:p-8 rounded-2xl md:rounded-3xl border border-gray-100 shadow-lg hover:shadow-xl transition-all"
         >
-          <motion.div
+          <motion.div 
             className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl ${b.bg} flex items-center justify-center mb-4 md:mb-6 ${b.color}`}
             whileHover={{ rotate: 5, scale: 1.1 }}
             transition={{ type: "spring", stiffness: 400 }}
@@ -679,7 +680,7 @@ const NewsletterSection = () => {
           >
             <Mail className="w-12 h-12 md:w-14 md:h-14 mx-auto mb-4 md:mb-6 text-primary-400" />
           </motion.div>
-
+          
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -688,7 +689,7 @@ const NewsletterSection = () => {
           >
             Rejoignez le Club
           </motion.h2>
-
+          
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -699,7 +700,7 @@ const NewsletterSection = () => {
             Accès anticipé aux nouvelles collections et offres exclusives
           </motion.p>
 
-          <motion.form
+          <motion.form 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -707,15 +708,15 @@ const NewsletterSection = () => {
             onSubmit={handleSubmit}
             className="flex flex-col sm:flex-row gap-3 md:gap-4 max-w-md mx-auto"
           >
-            <input
-              type="email"
+            <input 
+              type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="votre@email.com"
+              placeholder="votre@email.com" 
               className="flex-grow px-4 md:px-6 py-3 md:py-4 rounded-full bg-white/10 border border-white/10 backdrop-blur text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm md:text-base"
-              required
+              required 
             />
-            <motion.button
+            <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
@@ -724,8 +725,8 @@ const NewsletterSection = () => {
               S'inscrire
             </motion.button>
           </motion.form>
-
-          <motion.p
+          
+          <motion.p 
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -767,8 +768,8 @@ const Home = () => {
         setCategories(Array.isArray(cats?.data) ? cats.data : []);
       } catch (err) {
         console.error('Erreur API:', err);
-      } finally {
-        setLoading(false);
+      } finally { 
+        setLoading(false); 
       }
     };
     fetchData();
@@ -777,12 +778,12 @@ const Home = () => {
   if (loading) return (
     <div className="fixed inset-0 bg-gradient-to-br from-white to-gray-50 z-50 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
-        <motion.div
+        <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-12 h-12 md:w-16 md:h-16 border-3 md:border-4 border-gray-200 rounded-full border-t-primary-500"
         />
-        <motion.p
+        <motion.p 
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1.5, repeat: Infinity }}
           className="text-sm font-bold tracking-widest uppercase text-gray-600"
@@ -803,9 +804,9 @@ const Home = () => {
 
       {/* SECTION NOUVEAUTES */}
       <div className="container mx-auto px-4 mb-16 md:mb-32">
-        <SectionHeader
-          title="Nouveautés"
-          subtitle="Fresh Drops"
+        <SectionHeader 
+          title="Nouveautés" 
+          subtitle="Fresh Drops" 
           action={
             <Link to="/search?sort=newest" className="hidden md:flex items-center gap-3 font-bold text-gray-700 hover:text-primary-600 transition group">
               <span>Voir tout</span>
@@ -813,10 +814,10 @@ const Home = () => {
                 <ArrowRight size={18} />
               </div>
             </Link>
-          }
+          } 
         />
-
-        <motion.div
+        
+        <motion.div 
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
@@ -824,8 +825,8 @@ const Home = () => {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 lg:gap-8"
         >
           {(data?.newArrivals || []).slice(0, 8).map((p, i) => (
-            <motion.div
-              key={p.id}
+            <motion.div 
+              key={p.id} 
               variants={fadeInUp}
               custom={i}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
@@ -835,10 +836,10 @@ const Home = () => {
             </motion.div>
           ))}
         </motion.div>
-
+        
         <div className="mt-8 text-center md:hidden">
-          <Link
-            to="/search?sort=newest"
+          <Link 
+            to="/search?sort=newest" 
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-gray-300 font-bold text-gray-700 hover:border-primary-500 hover:text-primary-600 transition"
           >
             Voir tout le catalogue <ArrowRight size={16} />
@@ -849,8 +850,8 @@ const Home = () => {
       {/* SECTION BOUTIQUES */}
       <section className="container mx-auto px-4 mb-16 md:mb-32">
         <SectionHeader title="Créateurs Elite" subtitle="Certified Pros" centered />
-
-        <motion.div
+        
+        <motion.div 
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
@@ -858,14 +859,14 @@ const Home = () => {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6"
         >
           {(data?.topStores || []).slice(0, 4).map((s, i) => (
-            <motion.div
-              key={s.id}
+            <motion.div 
+              key={s.id} 
               variants={fadeInUp}
               whileHover={{ y: -8, transition: { duration: 0.2 } }}
               className="h-full"
             >
-              <Link
-                to={`/store/${s.id}`}
+              <Link 
+                to={`/store/${s.id}`} 
                 className="block bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl shadow-lg hover:shadow-xl transition-all border border-gray-100 group text-center h-full"
               >
                 <div className="relative w-16 h-16 md:w-20 md:h-20 mx-auto mb-4">
@@ -922,13 +923,13 @@ const Home = () => {
                 ))}
               </div>
             </div>
-
+            
             {/* Navigation Links */}
             <div>
               <h4 className="font-bold text-lg mb-4 md:mb-6">Explorer</h4>
               <ul className="space-y-2 md:space-y-3 text-gray-400 text-sm md:text-base">
                 {['Nouveautés', 'Meilleures Ventes', 'Catégories', 'Créateurs'].map(item => (
-                  <motion.li
+                  <motion.li 
                     key={item}
                     whileHover={{ x: 5 }}
                     transition={{ type: "spring", stiffness: 400 }}
@@ -938,12 +939,12 @@ const Home = () => {
                 ))}
               </ul>
             </div>
-
+            
             <div>
               <h4 className="font-bold text-lg mb-4 md:mb-6">Aide</h4>
               <ul className="space-y-2 md:space-y-3 text-gray-400 text-sm md:text-base">
                 {['Commandes', 'Livraison', 'Retours', 'Contact'].map(item => (
-                  <motion.li
+                  <motion.li 
                     key={item}
                     whileHover={{ x: 5 }}
                     transition={{ type: "spring", stiffness: 400 }}

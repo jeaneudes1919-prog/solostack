@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { ShoppingBag, LogOut, User, LayoutDashboard , Store } from 'lucide-react';
+import { ShoppingBag, LogOut, User, LayoutDashboard, Store } from 'lucide-react';
 
 // STORES
 import useAuthStore from './store/authStore';
@@ -97,12 +97,36 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex gap-4">
-                <Link to="/login" className="text-gray-600 font-medium hover:text-primary-500 transition self-center">Connexion</Link>
-                <Link to="/register" className="px-5 py-2.5 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition shadow-lg shadow-primary-500/30">
+              <div className="flex items-center gap-2 sm:gap-4">
+                {/* Connexion */}
+                <Link
+                  to="/login"
+                  className="
+      text-gray-600 hover:text-primary-500 transition
+      text-xs sm:text-sm md:text-base
+      px-2 sm:px-3 py-1.5
+      rounded-md
+    "
+                >
+                  Connexion
+                </Link>
+
+                {/* Inscription */}
+                <Link
+                  to="/register"
+                  className="
+      bg-primary-500 text-white hover:bg-primary-600 transition
+      text-xs sm:text-sm md:text-base
+      px-3 sm:px-4 md:px-5
+      py-1.5 sm:py-2 md:py-2.5
+      rounded-md sm:rounded-lg
+      shadow sm:shadow-lg
+    "
+                >
                   Inscription
                 </Link>
               </div>
+
             )}
           </div>
         </div>
