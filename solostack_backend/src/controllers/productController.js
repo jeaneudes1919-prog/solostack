@@ -1,10 +1,9 @@
 const db = require('../config/db');
 const slugify = require('slugify');
-const cloudinary = require('../config/cloudinary'); // Utilise ton fichier de config !
+const cloudinary = require('../config/cloudinary'); 
 const streamifier = require('streamifier');
 
 // --- FONCTION UTILITAIRE : Upload Buffer vers Cloudinary ---
-// Cette fonction est indispensable pour envoyer l'image depuis la RAM vers le Cloud
 const streamUpload = (file) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -21,23 +20,22 @@ const streamUpload = (file) => {
   });
 };
 
-// --- CRÉATION DE PRODUIT AVEC VARIANTES ---
+// --- CRÉATION DE PRODUIT ---
 exports.createProduct = async (req, res) => {
+  // Correction ici : on accède à db.pool.connect()
   const client = await db.pool.connect();
   
   try {
     await client.query('BEGIN');
 
-    // 1. GESTION DE L'IMAGE (CORRIGÉE POUR RENDER)
     if (!req.file) {
       throw new Error("L'image du produit est obligatoire.");
     }
 
-    // ✅ ON UTILISE LE STREAM AU LIEU DE req.file.path
+    // Upload via Buffer pour Render
     const result = await streamUpload(req.file);
     const image_url = result.secure_url;
 
-    // 2. RÉCUPÉRATION DES DONNÉES
     const { 
       title, description, base_price, category_id, variants,
       discount_percent, is_promotion, promotion_end_date
@@ -49,7 +47,6 @@ exports.createProduct = async (req, res) => {
     const parsedVariants = JSON.parse(variants); 
     const owner_id = req.user.id;
 
-    // Vérification de la Boutique
     const storeCheck = await client.query('SELECT id FROM stores WHERE owner_id = $1', [owner_id]);
     if (storeCheck.rows.length === 0) throw new Error("Boutique introuvable.");
     const store_id = storeCheck.rows[0].id;
@@ -60,7 +57,6 @@ exports.createProduct = async (req, res) => {
     const finalDiscount = isPromoBool ? parseInt(discount_percent) || 0 : 0;
     const finalEndDate = (isPromoBool && promotion_end_date) ? promotion_end_date : null;
 
-    // 4. INSERTION PRODUIT
     const productRes = await client.query(
       `INSERT INTO products (
           store_id, category_id, title, slug, description, base_price, image_url,
@@ -68,14 +64,10 @@ exports.createProduct = async (req, res) => {
        ) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) 
        RETURNING id`,
-      [
-        store_id, validCategoryId, title, slug, description, base_price, image_url,
-        finalDiscount, isPromoBool, finalEndDate
-      ]
+      [store_id, validCategoryId, title, slug, description, base_price, image_url, finalDiscount, isPromoBool, finalEndDate]
     );
     const productId = productRes.rows[0].id;
 
-    // Insertion des Variantes
     for (const variant of parsedVariants) {
       await client.query(
         `INSERT INTO product_variants (product_id, sku, price_adjustment, stock_quantity, attributes) 
@@ -96,7 +88,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// --- LISTER LES PRODUITS (Public + Filtres) ---
+// --- LISTER LES PRODUITS ---
 exports.getAllProducts = async (req, res) => {
     try {
       const query = `
@@ -128,7 +120,7 @@ exports.getAllProducts = async (req, res) => {
     }
 };
 
-// --- RÉCUPÉRER LES PRODUITS DU VENDEUR CONNECTÉ ---
+// --- RÉCUPÉRER LES PRODUITS DU VENDEUR ---
 exports.getVendorProducts = async (req, res) => {
     try {
       const owner_id = req.user.id;
@@ -144,35 +136,8 @@ exports.getVendorProducts = async (req, res) => {
         WHERE p.store_id = $1
         ORDER BY p.created_at DESC
       `;
-
       const result = await db.query(query, [store_id]);
       res.json(result.rows);
-    } catch (err) {
-      console.error(err);
-      res.status(500).send('Erreur Serveur');
-    }
-};
-
-// --- SUPPRIMER UN PRODUIT ---
-exports.deleteProduct = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const owner_id = req.user.id;
-
-      const checkQuery = `
-        SELECT p.id 
-        FROM products p 
-        JOIN stores s ON p.store_id = s.id 
-        WHERE p.id = $1 AND s.owner_id = $2
-      `;
-      const check = await db.query(checkQuery, [id, owner_id]);
-
-      if (check.rows.length === 0) {
-        return res.status(403).json({ error: "Accès interdit ou produit introuvable." });
-      }
-
-      await db.query('DELETE FROM products WHERE id = $1', [id]);
-      res.json({ message: "Produit supprimé avec succès." });
     } catch (err) {
       console.error(err);
       res.status(500).send('Erreur Serveur');
@@ -189,14 +154,11 @@ exports.updateProduct = async (req, res) => {
     
     let imageQueryPart = "";
     const queryParams = [title, description, base_price, parseInt(category_id), id];
-    let paramIndex = 6; 
 
     if (req.file) {
-      // ✅ ON UTILISE LE STREAM ICI AUSSI POUR RENDER
       const result = await streamUpload(req.file);
       const image_url = result.secure_url;
-      
-      imageQueryPart = `, image_url = $${paramIndex}`;
+      imageQueryPart = `, image_url = $6`;
       queryParams.push(image_url);
     }
 
@@ -207,7 +169,6 @@ exports.updateProduct = async (req, res) => {
       queryParams
     );
 
-    // Reset des variantes
     await client.query('DELETE FROM product_variants WHERE product_id = $1', [id]);
 
     const parsedVariants = JSON.parse(variants);
@@ -231,6 +192,26 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
+// --- SUPPRIMER UN PRODUIT ---
+exports.deleteProduct = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const owner_id = req.user.id;
+      const checkQuery = `
+        SELECT p.id FROM products p 
+        JOIN stores s ON p.store_id = s.id 
+        WHERE p.id = $1 AND s.owner_id = $2
+      `;
+      const check = await db.query(checkQuery, [id, owner_id]);
+      if (check.rows.length === 0) return res.status(403).json({ error: "Accès interdit." });
+
+      await db.query('DELETE FROM products WHERE id = $1', [id]);
+      res.json({ message: "Produit supprimé." });
+    } catch (err) {
+      res.status(500).send('Erreur Serveur');
+    }
+};
+
 // --- DONNÉES ACCUEIL ---
 exports.getHomeData = async (req, res) => {
     try {
@@ -251,25 +232,21 @@ exports.getHomeData = async (req, res) => {
         SELECT p.*, s.name as store_name, s.logo_url,
         COALESCE(AVG(pr.rating), 0) as average_rating,
         COUNT(DISTINCT pr.id) as review_count,
-        COUNT(DISTINCT oi.id) as sales_volume,
         (SELECT json_agg(json_build_object('stock_quantity', pv.stock_quantity)) FROM product_variants pv WHERE pv.product_id = p.id) as variants
         FROM products p
         JOIN stores s ON p.store_id = s.id
-        LEFT JOIN product_variants pv ON p.id = pv.product_id
-        LEFT JOIN order_items oi ON pv.id = oi.product_variant_id
         LEFT JOIN product_reviews pr ON p.id = pr.product_id
         WHERE p.is_active = TRUE
         GROUP BY p.id, s.id
-        ORDER BY sales_volume DESC, average_rating DESC
+        ORDER BY p.created_at DESC
         LIMIT 10
       `);
   
       const topStores = await db.query(`
         SELECT s.id, s.name, s.logo_url, s.description,
-        (SELECT COUNT(*) FROM sub_orders WHERE store_id = s.id) as sales_count,
-        (SELECT SUM(payout_amount) FROM sub_orders WHERE store_id = s.id) as revenue
+        (SELECT COUNT(*) FROM sub_orders WHERE store_id = s.id) as sales_count
         FROM stores s
-        ORDER BY revenue DESC LIMIT 4
+        ORDER BY sales_count DESC LIMIT 4
       `);
   
       res.json({
@@ -283,7 +260,7 @@ exports.getHomeData = async (req, res) => {
     }
 };
 
-// --- AJOUTER UN AVIS ---
+// --- AVIS PRODUIT ---
 exports.addProductReview = async (req, res) => {
     const client = await db.pool.connect();
     try {
@@ -292,52 +269,38 @@ exports.addProductReview = async (req, res) => {
       const user_id = req.user.id;
   
       const purchaseCheck = await client.query(`
-        SELECT 1 
-        FROM order_items oi
+        SELECT 1 FROM order_items oi
         JOIN product_variants pv ON oi.product_variant_id = pv.id
         JOIN sub_orders so ON oi.sub_order_id = so.id
         JOIN orders o ON so.parent_order_id = o.id
-        WHERE pv.product_id = $1   
-        AND o.user_id = $2 
-        AND o.payment_status = 'paid'
+        WHERE pv.product_id = $1 AND o.user_id = $2 AND o.payment_status = 'paid'
         LIMIT 1
       `, [id, user_id]);
   
-      if (purchaseCheck.rows.length === 0) {
-        return res.status(403).json({ error: "Vous devez avoir acheté ce produit pour le noter." });
-      }
+      if (purchaseCheck.rows.length === 0) return res.status(403).json({ error: "Achat requis pour noter." });
   
       await client.query(
         `INSERT INTO product_reviews (product_id, user_id, rating, comment) VALUES ($1, $2, $3, $4)`,
         [id, user_id, rating, comment]
       );
-  
-      res.json({ message: "Votre avis a été publié !" });
-  
+      res.json({ message: "Avis publié !" });
     } catch (err) {
-      if (err.code === '23505') return res.status(400).json({ error: "Vous avez déjà noté ce produit." });
-      console.error(err);
-      res.status(500).send('Erreur Serveur');
+      res.status(500).send('Erreur');
     } finally {
       client.release();
     }
 };
 
-// --- RÉCUPÉRER LES AVIS ---
 exports.getProductReviews = async (req, res) => {
     try {
       const { id } = req.params;
       const result = await db.query(`
-        SELECT pr.*, u.first_name, u.last_name 
-        FROM product_reviews pr
+        SELECT pr.*, u.first_name, u.last_name FROM product_reviews pr
         JOIN users u ON pr.user_id = u.id
-        WHERE pr.product_id = $1
-        ORDER BY pr.created_at DESC
+        WHERE pr.product_id = $1 ORDER BY pr.created_at DESC
       `, [id]);
-      
       res.json(result.rows);
     } catch (err) {
-      console.error(err);
       res.status(500).send('Erreur');
     }
 };
