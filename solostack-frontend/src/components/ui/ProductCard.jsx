@@ -11,15 +11,12 @@ const ProductCard = ({ product }) => {
   const rating = parseFloat(product.average_rating || 0);
   const count = parseInt(product.review_count || 0);
 
-  // 2. Image
+  // 2. Image (Variable sécurisée)
   const imageUrl = product.image_url || "https://via.placeholder.com/300";
 
-  // 3. CALCUL DU STOCK TOTAL (Nouveau !)
-  // On additionne le stock de toutes les variantes
+  // 3. CALCUL DU STOCK TOTAL
   const variants = product.variants || [];
   const totalStock = variants.reduce((acc, curr) => acc + (curr.stock_quantity || 0), 0);
-  
-  // Si pas de variantes, on assume que c'est épuisé (ou mal configuré)
   const isOutOfStock = variants.length > 0 && totalStock === 0;
 
   // 4. Ajout au panier
@@ -32,7 +29,6 @@ const ProductCard = ({ product }) => {
         return;
     }
 
-    // On prend la première variante disponible (celle qui a du stock)
     const defaultVariant = variants.find(v => v.stock_quantity > 0) || variants[0];
     
     if (!defaultVariant) {
@@ -57,19 +53,17 @@ const ProductCard = ({ product }) => {
           <motion.img
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.4 }}
-            src={image}
+            src={imageUrl} // ✅ CORRIGÉ : On utilise imageUrl
             alt={product.title}
             className={`w-full h-full object-cover object-center ${isOutOfStock ? 'opacity-50 grayscale' : ''}`}
           />
           
-          {/* Badge Vendeur */}
           {product.store_name && (
             <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-bold text-gray-800 shadow-sm z-10">
               {product.store_name}
             </div>
           )}
 
-          {/* Badge RUPTURE DE STOCK */}
           {isOutOfStock && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/10 z-0">
                <span className="bg-red-600 text-white px-3 py-1 rounded font-bold text-sm transform -rotate-12 shadow-lg">
