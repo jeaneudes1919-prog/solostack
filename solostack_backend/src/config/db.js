@@ -11,4 +11,8 @@ const pool = new Pool({
   }
 });
 
-module.exports = pool;
+// ✅ On exporte un OBJET qui contient le pool ET la méthode query
+module.exports = {
+  pool,
+  query: (text, params) => pool.query(text, params)
+};
