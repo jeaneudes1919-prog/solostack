@@ -259,24 +259,24 @@ const HeroSection = ({ isAuthenticated }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            /* On utilise gap-2 sur mobile pour gagner de la place */
-            className="flex flex-col sm:flex-row gap-2 md:gap-4 w-full sm:w-auto max-w-[280px] sm:max-w-none mx-auto md:mx-0"
+            /* Correction : flex-col par défaut (mobile) et sm:flex-row (tablette+) */
+            className="flex flex-col sm:flex-row gap-3 md:gap-4 w-full sm:w-auto max-w-[320px] sm:max-w-none mx-auto md:mx-0"
           >
             <Link
               to="/search"
-              /* Réduction du py (padding vertical) et du text-sm sur mobile */
-              className="w-full sm:w-auto px-5 sm:px-8 py-2.5 md:py-4 bg-white text-black rounded-full font-bold text-sm md:text-lg hover:scale-105 transition-all flex justify-center items-center gap-2 group shadow-2xl"
+              /* w-full pour qu'ils prennent toute la largeur sur mobile */
+              className="w-full sm:w-auto px-8 py-3.5 md:py-4 bg-white text-black rounded-full font-bold text-base md:text-lg hover:scale-105 transition-all flex justify-center items-center gap-2 group shadow-xl"
             >
               <span>Explorer</span>
-              <ArrowRight size={18} className="md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
 
             <Link
               to={isAuthenticated ? "/vendor/dashboard" : "/register"}
-              /* Bordure plus fine et texte plus petit sur mobile */
-              className="w-full sm:w-auto px-5 sm:px-8 py-2.5 md:py-4 border border-white/30 sm:border-2 bg-white/10 backdrop-blur-md text-white rounded-full font-bold text-sm md:text-lg hover:bg-white/20 transition-all flex justify-center items-center gap-2 group"
+              /* w-full ici aussi pour l'alignement parfait en dessous */
+              className="w-full sm:w-auto px-8 py-3.5 md:py-4 border-2 border-white/20 bg-white/5 backdrop-blur-md text-white rounded-full font-bold text-base md:text-lg hover:bg-white/10 transition-all flex justify-center items-center gap-2 group"
             >
-              <Store size={18} className="md:w-5 md:h-5 group-hover:rotate-12 transition-transform" />
+              <Store size={20} className="group-hover:rotate-12 transition-transform" />
               <span className="whitespace-nowrap">Espace Créateur</span>
             </Link>
           </motion.div>
