@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { ShoppingBag, LogOut, User, LayoutDashboard, Store } from 'lucide-react';
+import { ShoppingBag, LogOut, LayoutDashboard, Store } from 'lucide-react';
 
 // STORES
 import useAuthStore from './store/authStore';
@@ -14,14 +14,16 @@ import PrivateRoute from './components/PrivateRoute';
 import ProductDetails from './pages/ProductDetails';
 import Home from './pages/Home';
 import UserAvatar from './components/ui/UserAvatar';
-import SearchPage from './pages/SearchPage'; // NOUVEAU
-import StoresPage from './pages/StoresPage'; // NOUVEAU
+import SearchPage from './pages/SearchPage';
+import StoresPage from './pages/StoresPage';
 import PromotionsPage from './pages/PromotionsPage';
+
 // Pages - Client
 import MyOrders from './pages/dashboard/MyOrders';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
-import StorePage from './pages/StorePage'; // <--- Import nouveau
+import StorePage from './pages/StorePage';
+
 // Pages - Vendeur
 import VendorLayout from './pages/vendor/VendorLayout';
 import CreateStore from './pages/vendor/CreateStore';
@@ -41,19 +43,21 @@ const Navbar = () => {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/30 group-hover:rotate-12 transition">S</div>
-            <span className="text-xl font-bold text-gray-800">Solo<span className="text-primary-500">Stack</span></span>
+            <div className="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-primary-500/30 group-hover:rotate-12 transition">
+              S
+            </div>
+            <span className="text-xl font-bold text-gray-800">
+              Solo<span className="text-primary-500">Stack</span>
+            </span>
           </Link>
 
           {/* Liens Droite */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4">
 
-            {/* MODIFICATION ICI : On cache le panier si c'est un vendeur */}
+            {/* Panier (caché pour vendeur) */}
             {(!user || user.role !== 'vendor') && (
-
               <Link to="/cart" className="relative text-gray-500 hover:text-primary-500 transition">
                 <ShoppingBag size={24} />
-                {/* Badge dynamique du panier */}
                 {cartItems.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-bounce">
                     {cartItems.length}
@@ -61,82 +65,82 @@ const Navbar = () => {
                 )}
               </Link>
             )}
+
+            {/* Boutiques */}
             <Link
               to="/stores"
               className="text-gray-600 font-medium hover:text-primary-500 transition flex items-center"
-              title="Boutiques"
             >
-              {/* VERSION MOBILE : On affiche l'icône, on la cache sur écran moyen et + (md:hidden) */}
               <span className="md:hidden">
                 <Store size={24} />
               </span>
-
-              {/* VERSION PC : On cache le texte par défaut (hidden), on l'affiche sur écran moyen et + (md:block) */}
-              <span className="hidden md:block">
-                Boutiques
-              </span>
+              <span className="hidden md:block">Boutiques</span>
             </Link>
 
+            {/* Auth */}
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
-                {/* Lien conditionnel selon le rôle */}
                 {user?.role === 'vendor' ? (
-                  <Link to="/vendor/dashboard" className="text-sm font-medium text-gray-700 hover:text-primary-500 flex items-center gap-2">
+                  <Link
+                    to="/vendor/dashboard"
+                    className="text-sm font-medium text-gray-700 hover:text-primary-500 flex items-center gap-2"
+                  >
                     <LayoutDashboard size={18} />
                     Espace Vendeur
                   </Link>
                 ) : (
-                  <Link to="/dashboard/orders" className="text-sm font-medium text-gray-700 hover:text-primary-500 flex items-center gap-2">
-                    <UserAvatar firstName={user?.first_name} lastName={user?.last_name} size="sm" />
+                  <Link
+                    to="/dashboard/orders"
+                    className="text-sm font-medium text-gray-700 hover:text-primary-500 flex items-center gap-2"
+                  >
+                    <UserAvatar
+                      firstName={user?.first_name}
+                      lastName={user?.last_name}
+                      size="sm"
+                    />
                     {user?.first_name}
                   </Link>
                 )}
 
-                <button onClick={logout} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition" title="Se déconnecter">
+                <button
+                  onClick={logout}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"
+                  title="Se déconnecter"
+                >
                   <LogOut size={20} />
                 </button>
               </div>
             ) : (
-              <div className="
-                    flex flex-col items-end gap-1
-                    sm:flex-row sm:items-center sm:gap-4
-                  ">
-                {/* Connexion */}
+              /* ✅ BOUTONS RESPONSIVE EMPILÉS EN MOBILE */
+              <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-4">
                 <Link
                   to="/login"
                   className="
-                        text-gray-600 hover:text-primary-500 transition
-                        text-xs sm:text-sm md:text-base
-                        px-2 sm:px-3 py-1.5
-                        rounded-md
-                        w-full sm:w-auto text-right sm:text-left
-                      "
+                    text-gray-600 hover:text-primary-500 transition
+                    text-xs sm:text-sm md:text-base
+                    px-2 sm:px-3 py-1.5
+                    rounded-md
+                    w-full sm:w-auto text-right sm:text-left
+                  "
                 >
                   Connexion
                 </Link>
 
-                {/* Inscription */}
                 <Link
                   to="/register"
                   className="
-      bg-primary-500 text-white hover:bg-primary-600 transition
-      text-xs sm:text-sm md:text-base
-      px-3 sm:px-4 md:px-5
-      py-1.5 sm:py-2 md:py-2.5
-      rounded-md sm:rounded-lg
-      shadow sm:shadow-lg
-      w-full sm:w-auto text-center
-    "
+                    bg-primary-500 text-white hover:bg-primary-600 transition
+                    text-xs sm:text-sm md:text-base
+                    px-3 sm:px-4 md:px-5
+                    py-1.5 sm:py-2 md:py-2.5
+                    rounded-md sm:rounded-lg
+                    shadow sm:shadow-lg
+                    w-full sm:w-auto text-center
+                  "
                 >
                   Inscription
-                </Link><div className="flex gap-4">
-                  <Link to="/login" className="text-gray-600 font-medium hover:text-primary-500 transition self-center">Connexion</Link>
-                  <Link to="/register" className="px-5 py-2.5 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition shadow-lg shadow-primary-500/30">
-                    Inscription
-                  </Link>
-                </div>
+                </Link>
               </div>
-
             )}
           </div>
         </div>
@@ -148,15 +152,18 @@ const Navbar = () => {
 function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
 
-  useEffect(() => { checkAuth(); }, []);
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <Router>
       <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
         <Navbar />
+
         <Routes>
-          {/* ROUTES PUBLIQUES */}
+          {/* Routes publiques */}
           <Route path="/" element={<Home />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/store/:id" element={<StorePage />} />
@@ -166,26 +173,35 @@ function App() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/stores" element={<StoresPage />} />
           <Route path="/promotions" element={<PromotionsPage />} />
-          {/* ROUTES PROTÉGÉES (Checkout) */}
-          <Route path="/checkout" element={
-            <PrivateRoute>
-              <Checkout />
-            </PrivateRoute>
-          } />
 
-          {/* ROUTES CLIENT (ACHETEUR) */}
-          <Route path="/dashboard/orders" element={
-            <PrivateRoute>
-              <MyOrders />
-            </PrivateRoute>
-          } />
+          {/* Routes protégées */}
+          <Route
+            path="/checkout"
+            element={
+              <PrivateRoute>
+                <Checkout />
+              </PrivateRoute>
+            }
+          />
 
-          {/* ROUTES VENDEUR (ESPACE PRO) */}
-          <Route path="/vendor" element={
-            <PrivateRoute>
-              <VendorLayout />
-            </PrivateRoute>
-          }>
+          <Route
+            path="/dashboard/orders"
+            element={
+              <PrivateRoute>
+                <MyOrders />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Routes vendeur */}
+          <Route
+            path="/vendor"
+            element={
+              <PrivateRoute>
+                <VendorLayout />
+              </PrivateRoute>
+            }
+          >
             <Route path="create-store" element={<CreateStore />} />
             <Route path="dashboard" element={<DashboardHome />} />
             <Route path="add-product" element={<AddProduct />} />
@@ -193,7 +209,7 @@ function App() {
             <Route path="products" element={<VendorProducts />} />
           </Route>
 
-          {/* Redirection par défaut (404) */}
+          {/* 404 */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
