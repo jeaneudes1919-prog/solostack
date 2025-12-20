@@ -1,10 +1,10 @@
 const db = require('../config/db');
 const slugify = require('slugify');
-const cloudinary = require('../config/cloudinary');
-const streamifier = require('streamifier'); // ⚠️ Installe-le : npm install streamifier
+const cloudinary = require('../config/cloudinary'); // Utilise ton fichier de config !
+const streamifier = require('streamifier');
 
 // --- FONCTION UTILITAIRE : Upload Buffer vers Cloudinary ---
-// C'est ça qui va sauver ton déploiement Render !
+// Cette fonction est indispensable pour envoyer l'image depuis la RAM vers le Cloud
 const streamUpload = (file) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -49,6 +49,7 @@ exports.createProduct = async (req, res) => {
     const parsedVariants = JSON.parse(variants); 
     const owner_id = req.user.id;
 
+    // Vérification de la Boutique
     const storeCheck = await client.query('SELECT id FROM stores WHERE owner_id = $1', [owner_id]);
     if (storeCheck.rows.length === 0) throw new Error("Boutique introuvable.");
     const store_id = storeCheck.rows[0].id;
@@ -74,6 +75,7 @@ exports.createProduct = async (req, res) => {
     );
     const productId = productRes.rows[0].id;
 
+    // Insertion des Variantes
     for (const variant of parsedVariants) {
       await client.query(
         `INSERT INTO product_variants (product_id, sku, price_adjustment, stock_quantity, attributes) 
@@ -94,7 +96,6 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// ... (Garde getAllProducts et getVendorProducts tels quels) ...
 // --- LISTER LES PRODUITS (Public + Filtres) ---
 exports.getAllProducts = async (req, res) => {
     try {
@@ -125,14 +126,16 @@ exports.getAllProducts = async (req, res) => {
       console.error(err);
       res.status(500).send('Erreur Serveur');
     }
-  };
+};
 
-  exports.getVendorProducts = async (req, res) => {
+// --- RÉCUPÉRER LES PRODUITS DU VENDEUR CONNECTÉ ---
+exports.getVendorProducts = async (req, res) => {
     try {
       const owner_id = req.user.id;
       const storeRes = await db.query('SELECT id FROM stores WHERE owner_id = $1', [owner_id]);
       if (storeRes.rows.length === 0) return res.status(404).json({ error: "Boutique introuvable" });
       const store_id = storeRes.rows[0].id;
+      
       const query = `
         SELECT p.*, c.name as category_name,
         (SELECT COALESCE(SUM(stock_quantity), 0) FROM product_variants pv WHERE pv.product_id = p.id) as total_stock
@@ -141,18 +144,21 @@ exports.getAllProducts = async (req, res) => {
         WHERE p.store_id = $1
         ORDER BY p.created_at DESC
       `;
+
       const result = await db.query(query, [store_id]);
       res.json(result.rows);
     } catch (err) {
       console.error(err);
       res.status(500).send('Erreur Serveur');
     }
-  };
+};
 
-  exports.deleteProduct = async (req, res) => {
+// --- SUPPRIMER UN PRODUIT ---
+exports.deleteProduct = async (req, res) => {
     try {
       const { id } = req.params;
       const owner_id = req.user.id;
+
       const checkQuery = `
         SELECT p.id 
         FROM products p 
@@ -160,18 +166,20 @@ exports.getAllProducts = async (req, res) => {
         WHERE p.id = $1 AND s.owner_id = $2
       `;
       const check = await db.query(checkQuery, [id, owner_id]);
+
       if (check.rows.length === 0) {
         return res.status(403).json({ error: "Accès interdit ou produit introuvable." });
       }
+
       await db.query('DELETE FROM products WHERE id = $1', [id]);
       res.json({ message: "Produit supprimé avec succès." });
     } catch (err) {
       console.error(err);
       res.status(500).send('Erreur Serveur');
     }
-  };
+};
 
-// --- METTRE À JOUR UN PRODUIT (CORRIGÉ AUSSI) ---
+// --- METTRE À JOUR UN PRODUIT ---
 exports.updateProduct = async (req, res) => {
   const client = await db.pool.connect();
   try {
@@ -184,7 +192,7 @@ exports.updateProduct = async (req, res) => {
     let paramIndex = 6; 
 
     if (req.file) {
-      // ✅ ON UTILISE LE STREAM ICI AUSSI
+      // ✅ ON UTILISE LE STREAM ICI AUSSI POUR RENDER
       const result = await streamUpload(req.file);
       const image_url = result.secure_url;
       
@@ -199,6 +207,7 @@ exports.updateProduct = async (req, res) => {
       queryParams
     );
 
+    // Reset des variantes
     await client.query('DELETE FROM product_variants WHERE product_id = $1', [id]);
 
     const parsedVariants = JSON.parse(variants);
@@ -222,10 +231,9 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-// ... (Le reste : getHomeData, addProductReview, getProductReviews reste identique) ...
+// --- DONNÉES ACCUEIL ---
 exports.getHomeData = async (req, res) => {
     try {
-      // 1. NOUVEAUTÉS (Les derniers ajoutés)
       const newProducts = await db.query(`
         SELECT p.*, s.name as store_name, s.logo_url,
         COALESCE(AVG(pr.rating), 0) as average_rating,
@@ -239,27 +247,23 @@ exports.getHomeData = async (req, res) => {
         ORDER BY p.created_at DESC LIMIT 8
       `);
   
-      // 2. CRÈME DE LA CRÈME (Best Sellers + Mieux Notés)
-      // Logique : On prend ceux qui ont des ventes ET une bonne note, triés par volume de vente
       const trendingProducts = await db.query(`
         SELECT p.*, s.name as store_name, s.logo_url,
         COALESCE(AVG(pr.rating), 0) as average_rating,
         COUNT(DISTINCT pr.id) as review_count,
-        COUNT(DISTINCT oi.id) as sales_volume, -- On compte les ventes réelles
+        COUNT(DISTINCT oi.id) as sales_volume,
         (SELECT json_agg(json_build_object('stock_quantity', pv.stock_quantity)) FROM product_variants pv WHERE pv.product_id = p.id) as variants
         FROM products p
         JOIN stores s ON p.store_id = s.id
-        JOIN product_variants pv ON p.id = pv.product_id
-        JOIN order_items oi ON pv.id = oi.product_variant_id -- Liaison Ventes
+        LEFT JOIN product_variants pv ON p.id = pv.product_id
+        LEFT JOIN order_items oi ON pv.id = oi.product_variant_id
         LEFT JOIN product_reviews pr ON p.id = pr.product_id
         WHERE p.is_active = TRUE
         GROUP BY p.id, s.id
-        HAVING AVG(pr.rating) >= 4 OR COUNT(oi.id) > 0 -- Filtre : Bonne note OU au moins vendu
-        ORDER BY sales_volume DESC, average_rating DESC -- Le TOP du TOP
+        ORDER BY sales_volume DESC, average_rating DESC
         LIMIT 10
       `);
   
-      // 3. TOP BOUTIQUES (Par chiffre d'affaires)
       const topStores = await db.query(`
         SELECT s.id, s.name, s.logo_url, s.description,
         (SELECT COUNT(*) FROM sub_orders WHERE store_id = s.id) as sales_count,
@@ -277,20 +281,20 @@ exports.getHomeData = async (req, res) => {
       console.error(err);
       res.status(500).send('Erreur Serveur');
     }
-  };
+};
 
-  exports.addProductReview = async (req, res) => {
+// --- AJOUTER UN AVIS ---
+exports.addProductReview = async (req, res) => {
     const client = await db.pool.connect();
     try {
       const { id } = req.params; 
       const { rating, comment } = req.body;
       const user_id = req.user.id;
   
-      // VÉRIFICATION D'ACHAT
       const purchaseCheck = await client.query(`
         SELECT 1 
         FROM order_items oi
-        JOIN product_variants pv ON oi.product_variant_id = pv.id  -- << CORRECTION ICI
+        JOIN product_variants pv ON oi.product_variant_id = pv.id
         JOIN sub_orders so ON oi.sub_order_id = so.id
         JOIN orders o ON so.parent_order_id = o.id
         WHERE pv.product_id = $1   
@@ -303,7 +307,6 @@ exports.getHomeData = async (req, res) => {
         return res.status(403).json({ error: "Vous devez avoir acheté ce produit pour le noter." });
       }
   
-      // INSERTION
       await client.query(
         `INSERT INTO product_reviews (product_id, user_id, rating, comment) VALUES ($1, $2, $3, $4)`,
         [id, user_id, rating, comment]
@@ -318,9 +321,10 @@ exports.getHomeData = async (req, res) => {
     } finally {
       client.release();
     }
-  };
-  // --- RÉCUPÉRER LES AVIS D'UN PRODUIT ---
-  exports.getProductReviews = async (req, res) => {
+};
+
+// --- RÉCUPÉRER LES AVIS ---
+exports.getProductReviews = async (req, res) => {
     try {
       const { id } = req.params;
       const result = await db.query(`
@@ -336,4 +340,4 @@ exports.getHomeData = async (req, res) => {
       console.error(err);
       res.status(500).send('Erreur');
     }
-  };
+};

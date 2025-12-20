@@ -1,34 +1,32 @@
 const multer = require('multer');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
 
-// Configuration du stockage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Les fichiers vont ici
-  },
-  filename: function (req, file, cb) {
-    // Renomme le fichier : uniqueID + extension (ex: a1b2-c3d4.png)
-    cb(null, uuidv4() + path.extname(file.originalname));
-  }
-});
+// --- CONFIGURATION POUR RENDER (MÉMOIRE VIVE) ---
+// On utilise memoryStorage au lieu de diskStorage
+const storage = multer.memoryStorage();
 
-// Filtre pour n'accepter que les images
+// Filtre pour n'accepter que les images (On garde ta logique de sécurité)
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|webp/;
+  
+  // Vérification de l'extension
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  // Vérification du type MIME
   const mimetype = allowedTypes.test(file.mimetype);
 
   if (extname && mimetype) {
     return cb(null, true);
   } else {
-    cb(new Error('Seules les images sont autorisées !'));
+    // On passe une erreur plus propre
+    cb(new Error('Format de fichier non supporté. Seuls JPEG, JPG, PNG et WEBP sont autorisés.'));
   }
 };
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 1024 * 1024 * 5 }, // Limite 5MB
+  limits: { 
+    fileSize: 1024 * 1024 * 5 // Limite toujours à 5MB
+  },
   fileFilter: fileFilter
 });
 
