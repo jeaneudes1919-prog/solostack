@@ -2,44 +2,36 @@ const router = require('express').Router();
 const storeController = require('../controllers/storeController');
 const authorize = require('../middlewares/authorize');
 const multer = require('multer');
-const path = require('path');
 
-// --- CONFIGURATION MULTER (Spécifique aux Boutiques) ---
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Assure-toi que le dossier 'uploads/' existe à la racine du projet
-    cb(null, 'uploads/'); 
-  },
-  filename: function (req, file, cb) {
-    // Nom unique : store-TIMESTAMP.jpg
-    cb(null, 'store-' + Date.now() + path.extname(file.originalname));
-  }
+// --- CONFIGURATION MULTER (CORRIGÉE POUR RENDER) ---
+// On n'utilise plus diskStorage, on utilise memoryStorage
+const storage = multer.memoryStorage(); 
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // Optionnel: limite à 5Mo
 });
-
-const upload = multer({ storage: storage });
 
 // --- ROUTES ---
 
-// 1. Routes Globales (Pas d'ID spécifique)
-router.get('/', storeController.getAllStores); // Lister toutes les boutiques
+// 1. Routes Globales
+router.get('/', storeController.getAllStores);
 
-// 2. Création (Nécessite Auth + Upload)
+// 2. Création (Utilise upload.single)
 router.post('/', authorize, upload.single('logo'), storeController.createStore);
 
-// 3. Routes Spécifiques Vendeur (Dashboard / Moi)
-// ATTENTION : Ces routes doivent être AVANT router.get('/:id')
+// 3. Routes Spécifiques Vendeur
 router.get('/me', authorize, storeController.getMyStore);
 router.get('/stats', authorize, storeController.getDashboardStats);
 router.get('/chart', authorize, storeController.getSalesChart);
 
-// 4. Mise à jour (Auth + Upload)
+// 4. Mise à jour (Utilise upload.single)
 router.put('/update', authorize, upload.single('logo'), storeController.updateStore);
 
 // 5. Actions Client
 router.post('/review', authorize, storeController.addStoreReview);
 
-// 6. Route Dynamique (Doit être en DERNIER pour ne pas bloquer /me ou /stats)
-// Car si tu mets ça en premier, express pensera que "me" est un ID
+// 6. Route Dynamique (En dernier)
 router.get('/:id', storeController.getPublicStore);
 
 module.exports = router;
