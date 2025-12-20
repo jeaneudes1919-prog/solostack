@@ -97,16 +97,20 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 sm:gap-4">
+              <div className="
+                    flex flex-col items-end gap-1
+                    sm:flex-row sm:items-center sm:gap-4
+                  ">
                 {/* Connexion */}
                 <Link
                   to="/login"
                   className="
-      text-gray-600 hover:text-primary-500 transition
-      text-xs sm:text-sm md:text-base
-      px-2 sm:px-3 py-1.5
-      rounded-md
-    "
+                        text-gray-600 hover:text-primary-500 transition
+                        text-xs sm:text-sm md:text-base
+                        px-2 sm:px-3 py-1.5
+                        rounded-md
+                        w-full sm:w-auto text-right sm:text-left
+                      "
                 >
                   Connexion
                 </Link>
@@ -121,10 +125,16 @@ const Navbar = () => {
       py-1.5 sm:py-2 md:py-2.5
       rounded-md sm:rounded-lg
       shadow sm:shadow-lg
+      w-full sm:w-auto text-center
     "
                 >
                   Inscription
-                </Link>
+                </Link><div className="flex gap-4">
+                  <Link to="/login" className="text-gray-600 font-medium hover:text-primary-500 transition self-center">Connexion</Link>
+                  <Link to="/register" className="px-5 py-2.5 bg-primary-500 text-white font-medium rounded-lg hover:bg-primary-600 transition shadow-lg shadow-primary-500/30">
+                    Inscription
+                  </Link>
+                </div>
               </div>
 
             )}
