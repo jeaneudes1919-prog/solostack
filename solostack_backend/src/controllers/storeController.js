@@ -1,6 +1,25 @@
 const db = require('../config/db');
 const slugify = require('slugify');
 const cloudinary = require('../config/cloudinary');
+const streamifier = require('streamifier'); // ⚠️ N'oublie pas : npm install streamifier
+
+// --- FONCTION UTILITAIRE : Upload Buffer vers Cloudinary (POUR RENDER) ---
+const streamUpload = (file) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'ecommerce_stores' }, // Dossier pour les boutiques
+      (error, result) => {
+        if (result) {
+          resolve(result);
+        } else {
+          reject(error);
+        }
+      }
+    );
+    streamifier.createReadStream(file.buffer).pipe(stream);
+  });
+};
+
 // --- CRÉER UNE BOUTIQUE ---
 exports.createStore = async (req, res) => {
   try {
@@ -10,13 +29,12 @@ exports.createStore = async (req, res) => {
     // 1. Générer le slug
     const slug = slugify(name, { lower: true, strict: true });
 
-    // 2. Gestion Logo (Via Cloudinary)
-    let logo_url = null; // Par défaut null si pas d'image
+    // 2. Gestion Logo (CORRIGÉE POUR RENDER)
+    let logo_url = null; 
     
     if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'ecommerce_stores' // Dossier spécifique pour les logos
-      });
+      // ✅ Utilisation du Stream
+      const result = await streamUpload(req.file);
       logo_url = result.secure_url;
     }
 
@@ -111,6 +129,7 @@ exports.addStoreReview = async (req, res) => {
     res.status(500).send('Erreur (Déjà noté ?)');
   }
 };
+
 // --- CHART DATA (Revenus par jour - 7 derniers jours) ---
 exports.getSalesChart = async (req, res) => {
   try {
@@ -131,6 +150,7 @@ exports.getSalesChart = async (req, res) => {
     res.status(500).send('Erreur');
   }
 };
+
 // --- PAGE PUBLIQUE BOUTIQUE (Avec Compteur de Vues) ---
 exports.getPublicStore = async (req, res) => {
   try {
@@ -168,7 +188,8 @@ exports.getPublicStore = async (req, res) => {
     res.status(500).send('Erreur Serveur');
   }
 };
-// --- METTRE À JOUR LA BOUTIQUE ---
+
+// --- METTRE À JOUR LA BOUTIQUE (CORRIGÉ POUR RENDER) ---
 exports.updateStore = async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -180,10 +201,8 @@ exports.updateStore = async (req, res) => {
     
     // 2. Gestion Image Cloudinary (si nouveau fichier envoyé)
     if (req.file) {
-      // Upload vers Cloudinary
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'ecommerce_stores'
-      });
+      // ✅ Utilisation du Stream au lieu de req.file.path
+      const result = await streamUpload(req.file);
       
       // On ajoute logo_url à la requête SQL
       // $3 sera l'URL, $4 sera l'ID utilisateur
@@ -203,10 +222,11 @@ exports.updateStore = async (req, res) => {
 
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    console.error("ERREUR UPDATE STORE:", err);
     res.status(500).send('Erreur serveur');
   }
 };
+
 // --- LISTER TOUTES LES BOUTIQUES (Page /stores) ---
 exports.getAllStores = async (req, res) => {
   try {
